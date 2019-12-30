@@ -5,12 +5,15 @@
   },
   "dataStudio": {
     "name": "redmine-connector",
-    "logoUrl": "logoUrl",
-    "company": "manifestCompany",
-    "companyUrl": "companyUrl",
-    "addonUrl": "addonUrl",
-    "supportUrl": "supportUrl",
-    "description": "description",
+    "logoUrl": "https://raw.githubusercontent.com/mirgor/redmine-connector/master/logo.png",
+    "company": "Davintoo Ukraina LLC",
+    "companyUrl": "http://davintoo.com",
+    "addonUrl": "https://github.com/mirgor/redmine-connector",
+    "supportUrl": "https://github.com/mirgor/redmine-connector/issues",
+    "description": "Connect to any Redmine project and bring data of issues into Data Studio.",
+    "authType": ["NONE"],
+    "feeType": ["FREE"],
     "sources": [""]
-  }
+  },
+  "exceptionLogging": "STACKDRIVER"
 }
