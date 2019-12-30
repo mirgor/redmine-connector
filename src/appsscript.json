@@ -1,0 +1,16 @@
+{
+  "timeZone": "Europe/Bucharest",
+  "dependencies": {
+    "libraries": []
+  },
+  "dataStudio": {
+    "name": "redmine-connector",
+    "logoUrl": "logoUrl",
+    "company": "manifestCompany",
+    "companyUrl": "companyUrl",
+    "addonUrl": "addonUrl",
+    "supportUrl": "supportUrl",
+    "description": "description",
+    "sources": [""]
+  }
+}
