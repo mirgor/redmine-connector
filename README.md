@@ -1,5 +1,6 @@
 # redmine-connector
-Connect to any Redmine project and bring data of issues into Data Studio.
+
+Connect to Redmine projects and bring data of issues into Data Studio.
 
 ### Info
 
@@ -12,3 +13,7 @@ npm run prettier - formats your code using community standards.
 npm run try_latest - opens the deployment with your latest code.
 npm run try_production - opens your production deployment.
 npm run update_production - updates your production deployment to use the latest code.
+
+## ToDo
+
+1. Add source "time entries" (https://www.redmine.org/projects/redmine/wiki/Rest_TimeEntries) for dynamic data analyze

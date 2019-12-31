@@ -36,10 +36,12 @@ function getConfig(request) {
 
   config
     .newCheckbox()
-    .setId('allow_spent_hours')
-    .setName('Allow to get spent hours for issues data')
-    .setHelpText('We don\'t recommend to set this parameter because it runs many queries to the data server and ' +
-        'make slower the data analyze')
+    .setId("allow_spent_hours")
+    .setName('Include "Spent hours"')
+    .setHelpText(
+      "We don't recommend to set this parameter because it runs many queries to the data server and " +
+        "make slower the data analyze"
+    )
     .setAllowOverride(true);
 
   return config.build();
@@ -55,25 +57,19 @@ function getFields() {
     .setId("id")
     .setName("Id Issue")
     .setType(types.TEXT)
-    .setDescription(
-        "ID issue"
-    );
+    .setDescription("ID issue");
   fields
     .newDimension()
     .setId("project")
     .setName("Project")
     .setType(types.TEXT)
-    .setDescription(
-        "Project name"
-    );
+    .setDescription("Project name");
   fields
     .newDimension()
     .setId("tracker")
     .setName("Tracker")
     .setType(types.TEXT)
-    .setDescription(
-        "Tracker name"
-    );
+    .setDescription("Tracker name");
   fields
     .newDimension()
     .setId("status")
@@ -146,7 +142,7 @@ function getSchema(request) {
   return { schema: getFields().build() };
 }
 
-function responseToRows(requestedFields, responseData){
+function responseToRows(requestedFields, responseData) {
   return responseData.map(function(item) {
     var values = [];
     requestedFields.asArray().forEach(function(field) {
@@ -164,16 +160,24 @@ function responseToRows(requestedFields, responseData){
           values.push(item.status ? item.status.name.toString() : "undefined");
           break;
         case "priority":
-          values.push(item.priority ? item.priority.name.toString() : "undefined");
+          values.push(
+            item.priority ? item.priority.name.toString() : "undefined"
+          );
           break;
         case "author":
           values.push(item.author ? item.author.name.toString() : "undefined");
           break;
         case "assigned_to":
-          values.push(item.assigned_to ? item.assigned_to.name.toString() : "undefined");
+          values.push(
+            item.assigned_to ? item.assigned_to.name.toString() : "undefined"
+          );
           break;
         case "fixed_version":
-          values.push(item.fixed_version ? item.fixed_version.name.toString() : "undefined");
+          values.push(
+            item.fixed_version
+              ? item.fixed_version.name.toString()
+              : "undefined"
+          );
           break;
         case "done_ratio":
           values.push(item.done_ratio ? item.done_ratio : 0);
@@ -182,27 +186,19 @@ function responseToRows(requestedFields, responseData){
           values.push(item.estimated_hours ? item.estimated_hours : 0);
           break;
         case "start_date":
-          var start_date = strDateToYMD(
-              item.start_date
-          );
+          var start_date = strDateToYMD(item.start_date);
           values.push(start_date);
           break;
         case "due_date":
-          var due_date = strDateToYMD(
-              item.due_date
-          );
+          var due_date = strDateToYMD(item.due_date);
           values.push(due_date);
           break;
         case "created_on":
-          var created_on = strDateToYMDH(
-              item.created_on
-          );
+          var created_on = strDateToYMDH(item.created_on);
           values.push(created_on);
           break;
         case "updated_on":
-          var updated_on = strDateToYMDH(
-              item.updated_on
-          );
+          var updated_on = strDateToYMDH(item.updated_on);
           values.push(updated_on);
           break;
         case "spent_hours":
@@ -234,9 +230,9 @@ function getData(request) {
   }
 
   var requestedFields = getFields().forIds(
-      request.fields.map(function(field) {
-        return field.name;
-      })
+    request.fields.map(function(field) {
+      return field.name;
+    })
   );
 
   //Pager: {"total_count": 56, "offset": 0, "limit": 25}
@@ -247,8 +243,15 @@ function getData(request) {
   };
   var data_response = [];
 
-  for (var i = 1; (i-1) * pager.limit <= pager.total_count && i < 10; i++) {
-    var url = domain + "/projects/" + projectId + "/issues.json?limit=" + pager.limit + "&page=" + i ;
+  for (var i = 1; (i - 1) * pager.limit <= pager.total_count && i < 10; i++) {
+    var url =
+      domain +
+      "/projects/" +
+      projectId +
+      "/issues.json?limit=" +
+      pager.limit +
+      "&page=" +
+      i;
     var r_data_response = _getResByAPI(url, apikey);
     data_response = data_response.concat(r_data_response.issues);
     if (r_data_response.total_count) {
@@ -257,7 +260,7 @@ function getData(request) {
   }
 
   if (allow_spent_hours === true) {
-    data_response.forEach(function(element){
+    data_response.forEach(function(element) {
       element.spent_hours = getSpendTimeByIssueID(element.id, domain, apikey);
     });
   }
@@ -269,7 +272,6 @@ function getData(request) {
     rows: rows
   };
 }
-
 
 function _getResByAPI(url, apikey) {
   var response = UrlFetchApp.fetch(url, {
@@ -291,7 +293,7 @@ function _getResByAPI(url, apikey) {
     default:
       res = "Error " + responseCode;
       _myLog(
-          "Error: " +
+        "Error: " +
           response.getResponseCode() +
           "\n\n" +
           response.getContentText()
@@ -301,12 +303,11 @@ function _getResByAPI(url, apikey) {
   return res;
 }
 
-function getSpendTimeByIssueID(id, domain, apikey){
+function getSpendTimeByIssueID(id, domain, apikey) {
   var url = domain + "/issues/" + id + ".json";
   var response = _getResByAPI(url, apikey);
   return response.issue.spent_hours ? response.issue.spent_hours : 0;
 }
-
 
 /**
  * "2019-12-16" -> 20191109
@@ -330,8 +331,8 @@ function strDateToYMDH(strDate) {
     var dateParts = strDate.split("-");
     if (dateParts[0] && dateParts[1] && dateParts[2]) {
       var hours = regexForYMDH.exec(dateParts[2])
-          ? regexForYMDH.exec(dateParts[2])[2]
-          : "00";
+        ? regexForYMDH.exec(dateParts[2])[2]
+        : "00";
       dateParts[2] = regexForYMDH.exec(dateParts[2])[1];
       return dateParts[0] + dateParts[1] + dateParts[2] + hours;
     }
@@ -339,9 +340,8 @@ function strDateToYMDH(strDate) {
   return "";
 }
 
-
 function _myLog(log) {
-  if (!log){
+  if (!log) {
     log = "none";
   }
   if (typeof log == "object") {
@@ -349,13 +349,13 @@ function _myLog(log) {
   }
   var message = log.toString() || "-";
   var ss = SpreadsheetApp.openById(
-      "1QWGp6aBBtJVWxCsA0yoAM_qPNhwtPwVYV1wgzwR1cgM"
+    "1QWGp6aBBtJVWxCsA0yoAM_qPNhwtPwVYV1wgzwR1cgM"
   );
   var sheet = ss.getSheets()[0];
   var curDate = Utilities.formatDate(
-      new Date(),
-      "GMT+3",
-      "yyyy-MM-dd HH:mm:ss"
+    new Date(),
+    "GMT+3",
+    "yyyy-MM-dd HH:mm:ss"
   );
-  sheet.appendRow([curDate, "rmc :: " +  message]);
+  sheet.appendRow([curDate, "rmc :: " + message]);
 }

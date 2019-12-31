@@ -13,7 +13,10 @@
     "description": "Connect to any Redmine project and bring data of issues into Data Studio.",
     "authType": ["NONE"],
     "feeType": ["FREE"],
-    "sources": [""]
+    "sources": [""],
+    "templates": {
+      "default": "1X8IQybcUizEHfdZLPuKqAmhv5cS06J0I"
+    }
   },
   "exceptionLogging": "STACKDRIVER"
 }
