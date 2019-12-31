@@ -34,6 +34,14 @@ function getConfig(request) {
     .setHelpText("Enter project ID")
     .setPlaceholder("");
 
+  config
+    .newCheckbox()
+    .setId('allow_spent_hours')
+    .setName('Allow to get spent hours for issues data')
+    .setHelpText('We don\'t recommend to set this parameter because it runs many queries to the data server and ' +
+        'make slower the data analyze')
+    .setAllowOverride(true);
+
   return config.build();
 }
 
@@ -49,6 +57,14 @@ function getFields() {
     .setType(types.TEXT)
     .setDescription(
         "ID issue"
+    );
+  fields
+    .newDimension()
+    .setId("project")
+    .setName("Project")
+    .setType(types.TEXT)
+    .setDescription(
+        "Project name"
     );
   fields
     .newDimension()
@@ -79,11 +95,22 @@ function getFields() {
     .setName("Assigned To")
     .setType(types.TEXT);
   fields
+    .newDimension()
+    .setId("fixed_version")
+    .setName("Fixed Version")
+    .setType(types.TEXT);
+  fields
     .newMetric()
     .setId("done_ratio")
     .setName("Done Ratio")
     .setType(types.NUMBER)
     .setAggregation(aggregations.AVG);
+  fields
+    .newMetric()
+    .setId("estimated_hours")
+    .setName("Estimated Hours")
+    .setType(types.NUMBER)
+    .setAggregation(aggregations.SUM);
   fields
     .newMetric()
     .setId("start_date")
@@ -104,6 +131,12 @@ function getFields() {
     .setId("updated_on")
     .setName("Updated On")
     .setType(types.YEAR_MONTH_DAY_HOUR);
+  fields
+    .newMetric()
+    .setId("spent_hours")
+    .setName("Spend Hours")
+    .setType(types.NUMBER)
+    .setAggregation(aggregations.SUM);
 
   return fields;
 }
@@ -121,6 +154,9 @@ function responseToRows(requestedFields, responseData){
         case "id":
           values.push(item.id.toString());
           break;
+        case "project":
+          values.push(item.project.name.toString());
+          break;
         case "tracker":
           values.push(item.tracker.name.toString());
           break;
@@ -136,8 +172,14 @@ function responseToRows(requestedFields, responseData){
         case "assigned_to":
           values.push(item.assigned_to ? item.assigned_to.name.toString() : "undefined");
           break;
+        case "fixed_version":
+          values.push(item.fixed_version ? item.fixed_version.name.toString() : "undefined");
+          break;
         case "done_ratio":
           values.push(item.done_ratio ? item.done_ratio : 0);
+          break;
+        case "estimated_hours":
+          values.push(item.estimated_hours ? item.estimated_hours : 0);
           break;
         case "start_date":
           var start_date = strDateToYMD(
@@ -163,6 +205,9 @@ function responseToRows(requestedFields, responseData){
           );
           values.push(updated_on);
           break;
+        case "spent_hours":
+          values.push(item.spent_hours ? item.spent_hours : 0);
+          break;
         default:
           values.push("");
       }
@@ -175,6 +220,7 @@ function responseToRows(requestedFields, responseData){
 function getData(request) {
   var domain = request.configParams.domain;
   var apikey = request.configParams.apikey;
+  var allow_spent_hours = request.configParams.allow_spent_hours;
   var projectId = request.configParams.project_id;
   if (!projectId) {
     projectId = 0;
@@ -193,7 +239,7 @@ function getData(request) {
       })
   );
 
-  //Collaborator pager: {"total_count": 56, "offset": 0, "limit": 25}
+  //Pager: {"total_count": 56, "offset": 0, "limit": 25}
   var pager = {
     total_count: 100,
     offset: 0,
@@ -208,6 +254,12 @@ function getData(request) {
     if (r_data_response.total_count) {
       pager.total_count = r_data_response.total_count;
     }
+  }
+
+  if (allow_spent_hours === true) {
+    data_response.forEach(function(element){
+      element.spent_hours = getSpendTimeByIssueID(element.id, domain, apikey);
+    });
   }
 
   var rows = responseToRows(requestedFields, data_response);
@@ -247,6 +299,12 @@ function _getResByAPI(url, apikey) {
       break;
   }
   return res;
+}
+
+function getSpendTimeByIssueID(id, domain, apikey){
+  var url = domain + "/issues/" + id + ".json";
+  var response = _getResByAPI(url, apikey);
+  return response.issue.spent_hours ? response.issue.spent_hours : 0;
 }
 
 
