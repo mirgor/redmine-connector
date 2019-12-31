@@ -1,5 +1,7 @@
 var cc = DataStudioApp.createCommunityConnector();
 
+var regexForYMDH = /^(\d\d)T(\d\d):/;
+
 // https://developers.google.com/datastudio/connector/reference#isadminuser
 function isAdminUser() {
   return false;
@@ -48,7 +50,6 @@ function getFields() {
     .setDescription(
         "ID issue"
     );
-
   fields
     .newDimension()
     .setId("tracker")
@@ -62,13 +63,47 @@ function getFields() {
     .setId("status")
     .setName("Status")
     .setType(types.TEXT);
-
+  fields
+    .newDimension()
+    .setId("priority")
+    .setName("Priority")
+    .setType(types.TEXT);
+  fields
+    .newDimension()
+    .setId("author")
+    .setName("Author")
+    .setType(types.TEXT);
+  fields
+    .newDimension()
+    .setId("assigned_to")
+    .setName("Assigned To")
+    .setType(types.TEXT);
   fields
     .newMetric()
     .setId("done_ratio")
     .setName("Done Ratio")
     .setType(types.NUMBER)
     .setAggregation(aggregations.AVG);
+  fields
+    .newMetric()
+    .setId("start_date")
+    .setName("Start Date")
+    .setType(types.YEAR_MONTH_DAY);
+  fields
+    .newMetric()
+    .setId("due_date")
+    .setName("Due Date")
+    .setType(types.YEAR_MONTH_DAY);
+  fields
+    .newMetric()
+    .setId("created_on")
+    .setName("Created On")
+    .setType(types.YEAR_MONTH_DAY_HOUR);
+  fields
+    .newMetric()
+    .setId("updated_on")
+    .setName("Updated On")
+    .setType(types.YEAR_MONTH_DAY_HOUR);
 
   return fields;
 }
@@ -92,8 +127,41 @@ function responseToRows(requestedFields, responseData){
         case "status":
           values.push(item.status ? item.status.name.toString() : "undefined");
           break;
+        case "priority":
+          values.push(item.priority ? item.priority.name.toString() : "undefined");
+          break;
+        case "author":
+          values.push(item.author ? item.author.name.toString() : "undefined");
+          break;
+        case "assigned_to":
+          values.push(item.assigned_to ? item.assigned_to.name.toString() : "undefined");
+          break;
         case "done_ratio":
           values.push(item.done_ratio ? item.done_ratio : 0);
+          break;
+        case "start_date":
+          var start_date = strDateToYMD(
+              item.start_date
+          );
+          values.push(start_date);
+          break;
+        case "due_date":
+          var due_date = strDateToYMD(
+              item.due_date
+          );
+          values.push(due_date);
+          break;
+        case "created_on":
+          var created_on = strDateToYMDH(
+              item.created_on
+          );
+          values.push(created_on);
+          break;
+        case "updated_on":
+          var updated_on = strDateToYMDH(
+              item.updated_on
+          );
+          values.push(updated_on);
           break;
         default:
           values.push("");
@@ -180,6 +248,39 @@ function _getResByAPI(url, apikey) {
   }
   return res;
 }
+
+
+/**
+ * "2019-12-16" -> 20191109
+ **/
+function strDateToYMD(strDate) {
+  if (strDate) {
+    var dateParts = strDate.split("-");
+    if (dateParts[0] && dateParts[1] && dateParts[2]) {
+      return dateParts[0] + dateParts[1] + dateParts[2];
+    }
+  }
+  return "";
+}
+
+/**
+ * "2019-12-06T07:36:57Z" -> 2019110907
+ *
+ **/
+function strDateToYMDH(strDate) {
+  if (strDate) {
+    var dateParts = strDate.split("-");
+    if (dateParts[0] && dateParts[1] && dateParts[2]) {
+      var hours = regexForYMDH.exec(dateParts[2])
+          ? regexForYMDH.exec(dateParts[2])[2]
+          : "00";
+      dateParts[2] = regexForYMDH.exec(dateParts[2])[1];
+      return dateParts[0] + dateParts[1] + dateParts[2] + hours;
+    }
+  }
+  return "";
+}
+
 
 function _myLog(log) {
   if (!log){
